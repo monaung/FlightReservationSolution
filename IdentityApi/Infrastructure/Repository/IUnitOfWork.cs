@@ -7,5 +7,6 @@
         IAppUser AppUser { get; }
         IClaim Claim { get; }
         Task SaveChangesAsync();
+
     }
 }

@@ -13,6 +13,8 @@ namespace IdentityApi.Infrastructure.Repository
         void AddToken(RefreshToken token);
         void UpdateToken(RefreshToken token);
         Task<RefreshToken> GetRefreshTokenAsync(string refreshToken);
+
+        Task<RefreshToken> GetRefreshTokenByIdAsync(string userId);
     }
 
     public class RefreshTokenManagement(AppDbContext context) : IRefreshToken
@@ -35,6 +37,10 @@ namespace IdentityApi.Infrastructure.Repository
             var _token = await context.RefreshToken.AsNoTracking().FirstOrDefaultAsync(x => x.Token == refreshToken);
             return _token ?? null!;
         }
+
+        public async Task<RefreshToken> GetRefreshTokenByIdAsync(string userId) => 
+            await context.RefreshToken.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+        
 
         public async Task<bool> IsTokenValid(string token)
         {

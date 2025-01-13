@@ -27,7 +27,7 @@ namespace Shared.Authentication
                     ValidateIssuer = true,
                     ValidIssuer = config["Jwt:Issuer"],
                     ValidateAudience = true,
-                    ValidAudience = config["Audience"],
+                    ValidAudience = config["Jwt:Audience"],
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };

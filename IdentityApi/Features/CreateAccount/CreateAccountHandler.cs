@@ -8,10 +8,11 @@ using MediatR;
 using Shared.Authentication;
 using System.Security.Claims;
 using IdentityApi.Protos;
+using IdentityApi.Features.LoginAccount;
 
 namespace IdentityApi.Features.CreateAccount
 {
-    public class CreateAccountHandler
+    public class Request
     {
         public string? Fullname { get; set; }
         public string? Email { get; set; }
@@ -19,7 +20,7 @@ namespace IdentityApi.Features.CreateAccount
         public string? ConfirmPassword { get; set; }
     }
 
-    public class Validation: AbstractValidator<CreateAccountHandler>
+    public class Validation: AbstractValidator<Request>
     {
         public Validation()
         {
@@ -35,15 +36,15 @@ namespace IdentityApi.Features.CreateAccount
     {
         public static void Register(TypeAdapterConfig config)
         {
-            config.NewConfig<CreateAccountHandler, AppUser>()
+            config.NewConfig<Request, AppUser>()
                 .Map(d => d.PasswordHash, s => s.Password)
                 .Map(d => d.UserName, s => s.Email);
         }
     }
 
-    public record Command(CreateAccountHandler Account): IRequest<bool>;
+    public record Command(Request Account): IRequest<bool>;
 
-    internal class Handler(IUnitOfWork unitOfWork, IValidator<CreateAccountHandler> validator, IMapper mapper)
+    internal class Handler(IUnitOfWork unitOfWork, IValidator<Request> validator, IMapper mapper)
         : IRequestHandler<Command, bool>
     {
         public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
@@ -83,8 +84,9 @@ namespace IdentityApi.Features.CreateAccount
         public override async Task<CreateAccountResponseProto> CreateAccountProto(CreateAccountRequestProto request, 
             ServerCallContext context)
         {
-            var result = await sender.Send(new Command(request.Account.AdaptTo<CreateAccountHandler>()));
-            return new CreateAccountResponse { Result = result };
+            var mapRequest = request.Adapt<Request>();
+            var result = await sender.Send(new Command(mapRequest));
+            return new CreateAccountResponseProto { Success = result };
         }
     }
 }

@@ -2,6 +2,7 @@
 using Grpc.Core;
 using IdentityApi.Domain;
 using IdentityApi.Infrastructure.Repository;
+using IdentityApi.Protos;
 using Mapster;
 using MediatR;
 
@@ -9,7 +10,7 @@ namespace IdentityApi.Features.LoginAccount
 {
     public record Request(string Email, string Password);
 
-    public record Response(string JwtToken, string RefreToken);
+    public record Response(string JwtToken, string RefreshToken);
 
     public class Validation: AbstractValidator<Request>
     {
@@ -83,7 +84,16 @@ namespace IdentityApi.Features.LoginAccount
             return new Response(jwtToken, userToken.Token!);
         }
     }
-    public class LoginAccountHandler
+
+    internal class LoginAccountService(ISender sender): LoginAccountServiceProto.LoginAccountServiceProtoBase
     {
+        public override async Task<LoginAccountResponseProto> LoginAccountProto(LoginAccountRequestProto request, ServerCallContext context)
+        {
+            var mapRequest = request.Adapt<Request>();
+            var result = await sender.Send(new Command(mapRequest));
+            var mapResult = result.Adapt<LoginAccountResponseProto>();
+
+            return mapResult;
+        }
     }
 }

@@ -2,6 +2,8 @@
 using Grpc.Core;
 using IdentityApi.Domain;
 using IdentityApi.Infrastructure.Repository;
+using IdentityApi.Protos;
+using Mapster;
 using MediatR;
 
 namespace IdentityApi.Features.GetNewToken
@@ -61,7 +63,15 @@ namespace IdentityApi.Features.GetNewToken
             return new Response(jwtToken, _refreshToken.Token!);
         }
     }
-    public class GetNewTokenHandler
+    
+    internal class GetNewTokenService(ISender sender): GetNewTokenServiceProto.GetNewTokenServiceProtoBase
     {
+        public override async Task<NewTokenReresponseProto> GetNewTokenProto(NewTokenRequestProto request, ServerCallContext context)
+        {
+            var mapRequest = request.Adapt<Request>();
+            var result = await sender.Send(new Command(mapRequest));
+            var mapResult = result.Adapt<NewTokenReresponseProto>();
+            return mapResult;
+        }
     }
 }
